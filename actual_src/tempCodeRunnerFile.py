@@ -1,1 +1,0 @@
-print(f'Summoner Masteries: {batch} / {totalBatches}')
