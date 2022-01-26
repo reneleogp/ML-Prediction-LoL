@@ -1,13 +1,12 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
-import joblib
+from predict import predict_last_match
 
+# df = pd.DataFrame(
+#     np.random.randn(50, 20),
+#     columns=('col %d' % i for i in range(20)))
 
-df = pd.DataFrame(
-    np.random.randn(50, 20),
-    columns=('col %d' % i for i in range(20)))
+# st.dataframe(df)  # Same as st.write(df)
 
-st.dataframe(df)  # Same as st.write(df)
-
-model = joblib.load('src/finalized_model.sav')
+print(predict_last_match('krevrin', 'LAN'))
