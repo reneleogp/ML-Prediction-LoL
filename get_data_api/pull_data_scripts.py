@@ -1,3 +1,4 @@
+from riotwatcher import LolWatcher, ApiError
 from pymongo import MongoClient
 from api_calls import get_winrates, get_past_matches, get_masteries
 from json import load, dumps
@@ -15,6 +16,8 @@ db = client.league
 
 
 def get_randoms_summoners(region: str) -> None:
+    RIOT_API_KEY = os.getenv('RIOT_API_KEY')
+    lol_watcher = LolWatcher(RIOT_API_KEY)
     tier_list = ['IRON', 'BRONZE', 'SILVER', 'GOLD', 'PLATINUM', 'DIAMOND']
     rank_list = ['I', 'II', 'III', 'IV']
 
@@ -24,7 +27,7 @@ def get_randoms_summoners(region: str) -> None:
             players.extend(lol_watcher.league.entries(
                 region, 'RANKED_SOLO_5x5', tier, division))
 
-    with open('summoners.json', 'w') as file:
+    with open(f'{region}_summoners.json', 'w') as file:
         file.write(dumps(players))
 
     size = len(players)
@@ -54,7 +57,8 @@ def get_all_matches():
             continue
 
         for match in matches_list:
-            if (to_collection.find_one({'summonerName': summonerName})):
+            if (to_collection.find_one({'matchId': match['matchId']})):
+                print("Skipped match!")
                 continue
             to_collection.update_one({'matchId': match['matchId']},
                                      {"$setOnInsert": match}, upsert=True)
@@ -152,5 +156,7 @@ def get_all_winrates():
     cursor.close()
 
 
-get_all_masteries()
+get_all_matches()
+# get_all_masteries()
+# get_all_winrates()
 # ALLWAYS CLOSE THE CURSOR
