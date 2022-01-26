@@ -156,7 +156,7 @@ def get_all_winrates():
     cursor.close()
 
 
-get_all_matches()
-# get_all_masteries()
+# get_all_matches()
+get_all_masteries()
 # get_all_winrates()
 # ALLWAYS CLOSE THE CURSOR
