@@ -41,6 +41,7 @@ def get_all_matches():
     batch = 0
     to_collection = db['na_matches']
     from_collection = db['na_summoners']
+    top = 1  # Number of most recent last matches you want per summoner
     totalBatches = from_collection.count_documents({})
 
     cursor = from_collection.find({}, no_cursor_timeout=True,  batch_size=1)
@@ -51,7 +52,7 @@ def get_all_matches():
         summonerName = summoner['summonerName']
         region = "NA"
 
-        matches_list = get_past_matches(summonerName, region, 1)
+        matches_list = get_past_matches(summonerName, region, top)
 
         if(matches_list == None):
             continue
@@ -60,6 +61,7 @@ def get_all_matches():
             if (to_collection.find_one({'matchId': match['matchId']})):
                 print("Skipped match!")
                 continue
+            match['processed'] = False
             to_collection.update_one({'matchId': match['matchId']},
                                      {"$setOnInsert": match}, upsert=True)
 

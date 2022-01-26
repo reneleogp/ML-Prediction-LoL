@@ -30,7 +30,7 @@ def add_data(raw_data) -> list:
     return processed_data
 
 
-with open('new1_set.csv', 'w', encoding='UTF8', newline='') as f:
+with open('na_dataset.csv', 'w', encoding='UTF8', newline='') as f:
     writer = csv.writer(f)
 
     batch = 0
@@ -59,11 +59,11 @@ with open('new1_set.csv', 'w', encoding='UTF8', newline='') as f:
 
             try:
                 mastery_list = db.masteries.find_one(
-                    {'summonerName': summonerName})['mastery']
+                    {'summonerName': summonerName, 'region': region})['mastery']
             except:
                 print(summonerName)
             winrate_list = db.winrates.find_one(
-                {'summonerName': summonerName})['winrate']
+                {'summonerName': summonerName, 'region': region})['winrate']
 
             mastery = 0
             # Go over each element of the list
