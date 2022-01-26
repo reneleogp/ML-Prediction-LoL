@@ -87,7 +87,7 @@ def get_all_masteries():
             summonerName = participant['summonerName']
             batch += 1
 
-            if (to_collection.find_one({'summonerName': summonerName})):
+            if (to_collection.find_one({'summonerName': summonerName, 'region': region})):
                 print(f'Masteries found! {batch} / {totalBatches}')
                 continue
 
@@ -128,7 +128,7 @@ def get_all_winrates():
             summonerName = participant['summonerName']
             batch += 1
 
-            if (to_collection.find_one({'summonerName': summonerName})):
+            if (to_collection.find_one({'summonerName': summonerName, 'region': region})):
                 print(f'Winrates found! {batch} / {totalBatches}')
                 continue
 
