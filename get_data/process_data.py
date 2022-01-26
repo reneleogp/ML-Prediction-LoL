@@ -34,9 +34,9 @@ with open('new1_set.csv', 'w', encoding='UTF8', newline='') as f:
     writer = csv.writer(f)
 
     batch = 0
-
-    totalBatches = db.matches.count_documents({})
-    cursor = db.matches.find({}, no_cursor_timeout=True,  batch_size=1)
+    from_collection = db['na_matches']
+    totalBatches = from_collection.count_documents({})
+    cursor = from_collection.find({}, no_cursor_timeout=True,  batch_size=1)
     for match in cursor:
         t1 = time.time()
         batch += 1
@@ -105,8 +105,8 @@ with open('new1_set.csv', 'w', encoding='UTF8', newline='') as f:
 
         # write the data
         writer.writerow(final_data)
-        db.matches.update_one({'matchId': match['matchId']},
-                              {"$set": {'processed': True}})
+        from_collection.update_one({'matchId': match['matchId']},
+                                   {"$set": {'processed': True}})
 
         t2 = time.time()
         print(" {:.2f}s (total: {:.2f}s)".format(t2-t1, t2-t0))

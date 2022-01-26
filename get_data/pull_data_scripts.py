@@ -119,7 +119,7 @@ def get_all_winrates():
     totalBatches = from_collection.count_documents({})*10
     cursor = from_collection.find({}, no_cursor_timeout=True,  batch_size=1)
 
-    for match in from_collection.find():
+    for match in cursor:
         participants = match['participants']
         region = match['subject']['region']
         invalid_match = False
@@ -142,21 +142,21 @@ def get_all_winrates():
 
         if (invalid_match):
             print("Invalid Match :(")
-            db.matches.update_one({'matchId': match['matchId']},
-                                  {"$set": {
-                                      'winrates': False
-                                  }})
+            from_collection.update_one({'matchId': match['matchId']},
+                                       {"$set": {
+                                           'winrates': False
+                                       }})
         else:
             print("Valid Match!")
-            db.matches.update_one({'matchId': match['matchId']},
-                                  {"$set": {
-                                      'winrates': True
-                                  }})
+            from_collection.update_one({'matchId': match['matchId']},
+                                       {"$set": {
+                                           'winrates': True
+                                       }})
 
     cursor.close()
 
 
 # get_all_matches()
-get_all_masteries()
+# get_all_masteries()
 # get_all_winrates()
 # ALLWAYS CLOSE THE CURSOR
