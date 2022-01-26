@@ -1,23 +1,31 @@
 import json
 from pymongo import MongoClient
 import time
+import os
+from dotenv import load_dotenv
 
-start = time.time()
+load_dotenv()
 
-client = MongoClient("mongodb://admin:P4ssw0rd@107.190.2.229:27018")
+MONGO_URL = os.getenv("MONGO_URL")
 
+client = MongoClient(MONGO_URL)
 db = client.league
-collection = db['summoners']
 
-with open('summoners.json') as json_file:
+batch = 0
+db = client.league
+collection = db['na_summoners']
+
+with open('NA_summoners.json') as json_file:
     data = json.load(json_file)
 
 cnt = 0
+totalBatches = len(data)
 for summoner in data:
+    batch += 1
     collection.update_one({'summonerName': summoner['summonerName']},
                           {"$set": summoner}, upsert=True)
     cnt += 1
-    print(cnt)
+    print(f"Processing file {batch} ({100*batch//totalBatches}%)")
 
 end = time.time()
 print(f'Time taken: {end - start}')

@@ -2,9 +2,13 @@ import csv
 from pymongo import MongoClient
 import statistics_functions as stats
 import time
+import os
+from dotenv import load_dotenv
 
-client = MongoClient("mongodb://admin:P4ssw0rd@192.168.0.15:27018")
+load_dotenv()
+MONGO_URL = os.getenv("MONGO_URL")
 
+client = MongoClient(MONGO_URL)
 db = client.league
 t0 = time.time()
 
@@ -26,21 +30,19 @@ def add_data(raw_data) -> list:
     return processed_data
 
 
-with open('test_set.csv', 'w', encoding='UTF8', newline='') as f:
+with open('new1_set.csv', 'w', encoding='UTF8', newline='') as f:
     writer = csv.writer(f)
 
-    batch = 1
+    batch = 0
 
     totalBatches = db.matches.count_documents({})
-
-    for match in db.matches.find():
+    cursor = db.matches.find({}, no_cursor_timeout=True,  batch_size=1)
+    for match in cursor:
         t1 = time.time()
+        batch += 1
         print(f"Processing file {batch} ({100*batch//totalBatches}%)", end="")
-        if(batch < 3984):
-            batch += 1
-            continue
         # check if the match is valid
-        if(match['masteries'] == False or match['winrates'] == False):
+        if(match['masteries'] == False or match['winrates'] == False or match['processed'] == True):
             continue
 
         blueWinrates = []
@@ -72,7 +74,7 @@ with open('test_set.csv', 'w', encoding='UTF8', newline='') as f:
             winrate = 0
             for winrate_object in winrate_list:
                 if(championId == winrate_object['championID']):
-                    winrate = winrate_object['winrate']
+                    winrate = winrate_object['winrate']/100
 
             if(team == 'RED'):
                 redMasteries.append(mastery)
@@ -103,6 +105,9 @@ with open('test_set.csv', 'w', encoding='UTF8', newline='') as f:
 
         # write the data
         writer.writerow(final_data)
-        batch += 1
+        db.matches.update_one({'matchId': match['matchId']},
+                              {"$set": {'processed': True}})
+
         t2 = time.time()
         print(" {:.2f}s (total: {:.2f}s)".format(t2-t1, t2-t0))
+    cursor.close()

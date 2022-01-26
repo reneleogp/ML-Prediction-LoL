@@ -2,6 +2,8 @@ from bs4 import BeautifulSoup
 import requests
 import json
 
+# Gets the mast matches from mobalytics
+
 
 def get_past_matches(summonerName: str, region: str, top: int) -> list:
     url = "https://app.mobalytics.gg/api/lol/graphql/v1/query"
@@ -27,11 +29,15 @@ def get_past_matches(summonerName: str, region: str, top: int) -> list:
         'Content-Type': 'application/json'
     }
 
-    response = requests.request("POST", url, headers=headers, data=payload)
-    games_list = response.json(
-    )['data']['lol']['player']['matchesHistory']['matches']
+    try:
+        response = requests.request("POST", url, headers=headers, data=payload)
+        games_list = response.json(
+        )['data']['lol']['player']['matchesHistory']['matches']
+        return games_list
+    except:
+        return None
 
-    return games_list
+# Gets the mastery_list of a player from championmastery.gg
 
 
 def get_masteries(summonerName: str, region: str):
@@ -47,7 +53,6 @@ def get_masteries(summonerName: str, region: str):
         soup = BeautifulSoup(response.content, "html.parser")
         results = soup.find("tbody", id="tbody")
 
-        
         job_elements = results.find_all("tr")
 
         mastery_list = []
@@ -69,6 +74,8 @@ def get_masteries(summonerName: str, region: str):
         return mastery_dict
     except:
         return None
+
+# Gets the summoner_champion winrate_list of a player combining season 11 and season 12 from u.gg
 
 
 def get_winrates(summonerName: str, region: str) -> dict:
