@@ -1,22 +1,26 @@
-from doctest import master
 import joblib
 from get_data_training import api_calls
 from get_data_training import process_data
+import json
 
 
 def predict_last_match(summonerName: str, region: str):
     # Get last match
+
     match = api_calls.get_past_matches(summonerName, region, 1)[0]
     participants = match['participants']
-    print(match['subject']['championId'])
-
+    print('Match found!')
     blueWinrates = []
     blueMasteries = []
     redWinrates = []
     redMasteries = []
 
+    batch = 0
+    totalBatches = 10
     # Get Masteries and Winrates
     for participant in participants:
+        batch += 1
+        print(f"Processing participant {batch} ({100*batch//totalBatches}%)")
         championId = participant['championId']
         team = participant['team']
 
@@ -45,6 +49,7 @@ def predict_last_match(summonerName: str, region: str):
 
     # Process Data
 
+    print('Processing data...')
     blueData = []
     redData = []
 
@@ -70,9 +75,34 @@ def predict_last_match(summonerName: str, region: str):
 
     model = joblib.load('src/finalized_model.sav')
 
-    y_new = model.predict([dataset])
-    print(match['subject']['championId'])
-    print(y_new)
-    print(result)
+    prediction = model.predict([dataset])
 
-    return y_new
+    response = {}
+
+    with open('champions_name_dictionary.json', 'r') as file:
+        champions = json.load(file)
+
+    your_championId = match['subject']['championId']
+    your_team = match['subject']['team']
+    your_role = match['subject']['role']
+
+    response['team'] = your_team
+    response['role'] = your_role
+    response['champion'] = champions[str(your_championId)]
+
+    if((result == 1 and your_team == 'BLUE') or (result == 0 and your_team == 'RED')):
+        response['won'] = True
+    else:
+        response['won'] = False
+
+    print(prediction)
+    print(result)
+    if(result == prediction):
+        response['correct'] = True
+    else:
+        response['correct'] = False
+
+    return response
+
+
+print(predict_last_match('kokkurit', 'LAN'))
