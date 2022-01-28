@@ -88,7 +88,7 @@ with predict_current_match:
         disp_col.write(data["champion"])
 
         disp_col.subheader(f"Our prediction is:")
-        if data["prediction"]:
+        if data["victory_predicted"]:
             disp_col.write("Victory!")
         else:
             disp_col.write("Defeat :(")

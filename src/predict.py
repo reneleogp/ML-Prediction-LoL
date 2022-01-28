@@ -99,6 +99,7 @@ def predict_match(match, region):
 
 
 def get_current_match_prediction(summoner_name: str, region: str) -> dict:
+    print("-----Getting current match-----")
     region1 = region
     regionOf = {
         "LAN": "la1",
@@ -171,7 +172,6 @@ def get_current_match_prediction(summoner_name: str, region: str) -> dict:
                 summoner["team"] = "RED"
 
             participants.append(summoner)
-
         for participant in participants:
             if summoner_name == participant["summonerName"]:
                 your_team = participant["team"]
@@ -180,7 +180,15 @@ def get_current_match_prediction(summoner_name: str, region: str) -> dict:
         match["participants"] = participants
 
         response = {}
-        response["prediction"] = predict_match(match, region1)
+        prediction = predict_match(match, region1)
+        print(prediction)
+        if (prediction == 1 and your_team == "BLUE") or (
+            prediction == 0 and your_team == "RED"
+        ):
+            response["victory_predicted"] = True
+        else:
+            response["victory_predicted"] = False
+
         response["team"] = your_team
         response["champion"] = your_champion
 
@@ -189,6 +197,7 @@ def get_current_match_prediction(summoner_name: str, region: str) -> dict:
 
 def get_last_match_prediction(summonerName: str, region: str):
     # Get last match
+    print("-----Getting last match-----")
     match = api_calls.get_past_matches(summonerName, region, 1)[0]
     prediction = predict_match(match, region)
 
