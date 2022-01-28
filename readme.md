@@ -21,11 +21,15 @@ Based on these final preposition I decided to create an machine learning algorit
 The most important part of your algorithm are your dataset. So I needed a good amount of matches(samples) to train my algorithm. These are the steps I followed:
 
 1. First I got around 875 random summoners from each ranking from Iron to Diamond using Riot's API 
-2. Using these summoners I got their last 3 Solo-Ranked matches from U.GG API. Making a total of 14k games
+2. Using these summoners I got their last 3 Solo-Ranked matches from Mobalytics API. Making a total of 14k games
+3. Then I got the masteries from [championmastery.gg](https://championmastery.gg/)
+4. Then I got the winrates of season 11 and 12 from [u.gg](https://u.gg/)
+5. Finally I saved everything in my mongodb database and saved to train the algorithm
+   
+## Models
 
-- **Summoners: **
+- I used two models a GBOOST and a Deep neural network being the Gradient boosting the best with an accuracy up to 91%
 
 
 
 
-Congrats for the work done.
