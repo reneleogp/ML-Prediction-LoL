@@ -14,7 +14,7 @@ db = client.league
 t0 = time.time()
 
 
-def add_data(raw_data) -> list:
+def add_stats(raw_data) -> list:
     processed_data = []
 
     # add 5
@@ -38,55 +38,59 @@ def add_data(raw_data) -> list:
 
 
 def process_mongo_data():
-    with open('dataset.csv', 'w', encoding='UTF8', newline='') as f:
+    with open("dataset.csv", "w", encoding="UTF8", newline="") as f:
         writer = csv.writer(f)
 
         batch = 0
-        from_collection = db['na_matches']
+        from_collection = db["na_matches"]
         totalBatches = from_collection.count_documents({})
-        cursor = from_collection.find(
-            {}, no_cursor_timeout=True,  batch_size=1)
+        cursor = from_collection.find({}, no_cursor_timeout=True, batch_size=1)
         for match in cursor:
             t1 = time.time()
             batch += 1
-            print(
-                f"Processing file {batch} ({100*batch//totalBatches}%)", end="")
+            print(f"Processing file {batch} ({100*batch//totalBatches}%)", end="")
             # check if the match is valid
-            if(match['masteries'] == False or match['winrates'] == False or match['processed'] == True):
+            if (
+                match["masteries"] == False
+                or match["winrates"] == False
+                or match["processed"] == True
+            ):
                 continue
 
             blueWinrates = []
             blueMasteries = []
             redWinrates = []
             redMasteries = []
-            participants = match['participants']
-            region = match['subject']['region']
+            participants = match["participants"]
+            region = match["subject"]["region"]
 
             for participant in participants:
-                summonerName = participant['summonerName']
-                championId = participant['championId']
-                team = participant['team']
+                summonerName = participant["summonerName"]
+                championId = participant["championId"]
+                team = participant["team"]
 
                 try:
                     mastery_list = db.masteries.find_one(
-                        {'summonerName': summonerName, 'region': region})['mastery']
+                        {"summonerName": summonerName, "region": region}
+                    )["mastery"]
                 except:
                     print(summonerName)
                 winrate_list = db.winrates.find_one(
-                    {'summonerName': summonerName, 'region': region})['winrate']
+                    {"summonerName": summonerName, "region": region}
+                )["winrate"]
 
                 mastery = 0
                 # Go over each element of the list
                 for mastery_object in mastery_list:
-                    if(championId == mastery_object['championId']):
-                        mastery = mastery_object['mastery']
+                    if championId == mastery_object["championId"]:
+                        mastery = mastery_object["mastery"]
 
                 winrate = 0
                 for winrate_object in winrate_list:
-                    if(championId == winrate_object['championID']):
-                        winrate = winrate_object['winrate']/100
+                    if championId == winrate_object["championID"]:
+                        winrate = winrate_object["winrate"] / 100
 
-                if(team == 'RED'):
+                if team == "RED":
                     redMasteries.append(mastery)
                     redWinrates.append(winrate)
                 else:
@@ -96,28 +100,31 @@ def process_mongo_data():
             blueData = []
             redData = []
 
-            blueData += add_data(blueMasteries)
-            blueData += add_data(blueWinrates)
-            redData += add_data(redMasteries)
-            redData += add_data(redWinrates)
+            blueData += add_stats(blueMasteries)
+            blueData += add_stats(blueWinrates)
+            redData += add_stats(redMasteries)
+            redData += add_stats(redWinrates)
 
             final_data = []
             final_data += blueData
             final_data += redData
 
-            teams = {match['teams'][0]['id']: match['teams'][0]['result'],
-                     match['teams'][1]['id']: match['teams'][1]['result']}
+            teams = {
+                match["teams"][0]["id"]: match["teams"][0]["result"],
+                match["teams"][1]["id"]: match["teams"][1]["result"],
+            }
 
-            if(teams['BLUE'] == 'WON'):
+            if teams["BLUE"] == "WON":
                 final_data.append(1)
             else:
                 final_data.append(0)
 
             # write the data
             writer.writerow(final_data)
-            from_collection.update_one({'matchId': match['matchId']},
-                                       {"$set": {'processed': True}})
+            from_collection.update_one(
+                {"matchId": match["matchId"]}, {"$set": {"processed": True}}
+            )
 
             t2 = time.time()
-            print(" {:.2f}s (total: {:.2f}s)".format(t2-t1, t2-t0))
+            print(" {:.2f}s (total: {:.2f}s)".format(t2 - t1, t2 - t0))
         cursor.close()
