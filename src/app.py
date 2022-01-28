@@ -1,13 +1,16 @@
+from tkinter.messagebox import NO
 import streamlit as st
 import numpy as np
 import pandas as pd
-from predict import predict_last_match
+from predict import get_current_match_prediction, get_last_match_prediction
 
 header = st.container()
 dataset = st.container()
 features = st.container()
 model_training = st.container()
-prediciton = st.container()
+predict_current_match = st.container()
+predict_last_match = st.container()
+
 
 last_summoner_name = "a"
 
@@ -46,19 +49,79 @@ with features:
 with model_training:
     st.header("I used a GBOOST and a Deep neural network")
 
-with prediciton:
-    st.header("Now lets make a prediciton on your last game!")
+with predict_current_match:
+    st.header("Predict Current Match!")
+
+    sel_col, disp_col = st.columns(2)
+    summoner_name = sel_col.text_input("What is your Summoner Name?", "kokkurit")
+    region = sel_col.selectbox(
+        "What is your Region?",
+        options=[
+            "LAN",
+            "NA",
+            "LAN",
+            "LAS",
+            "NA",
+            "EUW",
+            "EUNE",
+            "BR",
+            "JP",
+            "KR",
+            "OCE",
+            "RU",
+            "TR",
+        ],
+    )
+
+    if summoner_name != last_summoner_name:
+        data = get_current_match_prediction(summoner_name, region)
+        last_summoner_name = summoner_name
+
+    print(data)
+    if data == None:
+        disp_col.subheader("No current game")
+    else:
+        disp_col.subheader(f"Your team is:")
+        disp_col.write(data["team"])
+
+        disp_col.subheader(f"Your champion is:")
+        disp_col.write(data["champion"])
+
+        disp_col.subheader(f"Our prediction is:")
+        if data["prediction"]:
+            disp_col.write("Victory!")
+        else:
+            disp_col.write("Defeat :(")
+
+
+with predict_last_match:
+    st.header("Predict last match!")
 
     sel_col, disp_col = st.columns(2)
     summoner_name = sel_col.text_input("What is your Summoner Name?", "pentaculos3k")
-    region = sel_col.text_input("What is your Region?", "LAN")
+    region = sel_col.selectbox(
+        "What is your Region????",
+        options=[
+            "LAN",
+            "NA",
+            "LAN",
+            "LAS",
+            "NA",
+            "EUW",
+            "EUNE",
+            "BR",
+            "JP",
+            "KR",
+            "RU",
+            "TR",
+        ],
+    )
 
-    print(summoner_name)
-    print(last_summoner_name)
     if summoner_name != last_summoner_name:
-        data = predict_last_match(summoner_name, region)
+        data = get_last_match_prediction(summoner_name, region)
         last_summoner_name = summoner_name
 
+    print(data)
     disp_col.subheader(f"Your team was:")
     disp_col.write(data["team"])
 

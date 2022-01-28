@@ -1,8 +1,14 @@
+import json
+import os
 import joblib
 from api_calls import api_calls
 import numpy as np
 import scipy.stats
-import json
+from dotenv import load_dotenv
+from riotwatcher import LolWatcher, ApiError
+
+with open("champions_name_dictionary.json", "r") as file:
+    champions = json.load(file)
 
 
 def add_stats(raw_data) -> list:
@@ -30,93 +36,8 @@ def add_stats(raw_data) -> list:
 
 """ pip install riotwatcher - https://riot-watcher.readthedocs.io/ """
 
-from riotwatcher import LolWatcher, ApiError
-import json
 
-api_key = "RGAPI-c8b616e3-d0f5-47bc-a896-381382dfdc68"
-lol_watcher = LolWatcher(api_key)
-
-
-def get_current_match(region: str, summoner_name: str) -> dict:
-    """
-    4 requests to Riot API
-    If current match does not exist returns None, otherwise returns a dictionary with:
-
-    gameType: str -> The game type
-    gameId: int ->  The ID of the game
-    participants: list -> The participant information
-
-    The participant information:
-
-    summonerName: str -> The summoner name of this participant
-    summonerId: str -> The encrypted summoner ID of this participant
-    championId: str -> The ID of the champion played by this participant
-    championMastery: int -> Total number of champion points for this player and champion combination
-    tier: str -> The player's tier or None if the player has not qualified yet
-    rank: str -> The player's division within a tier or None if the player has not qualified yet
-    leaguePoints: int -> The player's league points in this tier and rank
-    """
-    encrypted_summoner_id = lol_watcher.summoner.by_name(region, summoner_name)["id"]
-
-    try:
-        current_match = lol_watcher.spectator.by_summoner(region, encrypted_summoner_id)
-    except ApiError as e:
-        """
-        Possible Errors:
-            The player is not in match
-            Api Key is invalid
-        """
-        return None
-    except:
-        """Unexpected Error"""
-        return None
-    else:
-        Dict = dict()
-
-        Dict["gameType"] = current_match["gameType"]
-        Dict["gameId"] = current_match["gameId"]
-        Dict["gameMode"] = current_match["gameMode"]
-        Dict["gameQueueConfigId"] = current_match["gameQueueConfigId"]
-
-        participants = list()
-        for participant in current_match["participants"]:
-            summoner = dict()
-
-            summoner["summonerName"] = participant["summonerName"]
-            summoner["summonerId"] = participant["summonerId"]
-            summoner["championId"] = participant["championId"]
-            summoner["teamId"] = participant["teamId"]
-
-            summoner["championMastery"] = get_champion_mastery_points(
-                region, summoner["summonerId"], summoner["championId"]
-            )
-
-            summoner["tier"] = None
-            summoner["rank"] = None
-            summoner["leaguePoints"] = 0
-
-            league = lol_watcher.league.by_summoner(region, summoner["summonerId"])
-
-            for queue in league:
-                if queue["queueType"] == "RANKED_SOLO_5x5":
-                    summoner["tier"] = queue["tier"]
-                    summoner["rank"] = queue["rank"]
-                    summoner["leaguePoints"] = queue["leaguePoints"]
-
-            participants.append(summoner)
-
-        Dict["participants"] = participants
-
-        return Dict
-
-
-print(json.dumps(get_current_match("la1", "PKS JackeyLove")))
-
-
-def predict_last_match(summonerName: str, region: str):
-    # Get last match
-
-    match = api_calls.get_past_matches(summonerName, region, 1)[0]
+def predict_match(match, region):
     participants = match["participants"]
     print("Match found!")
     blueWinrates = []
@@ -132,13 +53,10 @@ def predict_last_match(summonerName: str, region: str):
         print(f"Processing participant {batch} ({100*batch//totalBatches}%)")
         championId = participant["championId"]
         team = participant["team"]
+        summonerName = participant["summonerName"]
 
-        winrate_list = api_calls.get_winrates(participant["summonerName"], region)[
-            "winrate"
-        ]
-        mastery_list = api_calls.get_masteries(participant["summonerName"], region)[
-            "mastery"
-        ]
+        winrate_list = api_calls.get_winrates(summonerName, region)["winrate"]
+        mastery_list = api_calls.get_masteries(summonerName, region)["mastery"]
         mastery = 0
 
         # Go over each element of the list
@@ -173,27 +91,118 @@ def predict_last_match(summonerName: str, region: str):
     final_data += blueData
     final_data += redData
 
-    teams = {
+    dataset = final_data
+    model = joblib.load("src/finalized_model.sav")
+    prediction = model.predict([dataset])
+
+    return prediction
+
+
+def get_current_match_prediction(summoner_name: str, region: str) -> dict:
+    region1 = region
+    regionOf = {
+        "LAN": "la1",
+        "LAS": "la2",
+        "NA": "na1",
+        "EUW": "euw1",
+        "EUNE": "eun1",
+        "BR": "br1",
+        "JP": "jp1",
+        "KR": "kr",
+        "OCE": "oc1",
+        "RU": "ru",
+        "TR": "tr1",
+    }
+    region = regionOf[region]
+
+    load_dotenv()
+    RIOT_API_KEY = os.getenv("RIOT_API_KEY")
+    lol_watcher = LolWatcher(RIOT_API_KEY)
+    """
+    4 requests to Riot API
+    If current match does not exist returns None, otherwise returns a dictionary with:
+
+    gameType: str -> The game type
+    gameId: int ->  The ID of the game
+    participants: list -> The participant information
+
+    The participant information:
+
+    summonerName: str -> The summoner name of this participant
+    summonerId: str -> The encrypted summoner ID of this participant
+    championId: str -> The ID of the champion played by this participant
+    championMastery: int -> Total number of champion points for this player and champion combination
+    tier: str -> The player's tier or None if the player has not qualified yet
+    rank: str -> The player's division within a tier or None if the player has not qualified yet
+    leaguePoints: int -> The player's league points in this tier and rank
+    """
+    encrypted_summoner_id = lol_watcher.summoner.by_name(region, summoner_name)["id"]
+
+    try:
+        current_match = lol_watcher.spectator.by_summoner(region, encrypted_summoner_id)
+    except ApiError as e:
+        """
+        Possible Errors:
+            The player is not in match
+            Api Key is invalid
+        """
+        return None
+    except:
+        """Unexpected Error"""
+        return None
+    else:
+        match = dict()
+
+        match["gameType"] = current_match["gameType"]
+        match["gameId"] = current_match["gameId"]
+        match["gameMode"] = current_match["gameMode"]
+        match["gameQueueConfigId"] = current_match["gameQueueConfigId"]
+
+        participants = list()
+        for participant in current_match["participants"]:
+            summoner = dict()
+
+            summoner["summonerName"] = participant["summonerName"]
+            summoner["summonerId"] = participant["summonerId"]
+            summoner["championId"] = participant["championId"]
+            if participant["teamId"] == 100:
+                summoner["team"] = "BLUE"
+            else:
+                summoner["team"] = "RED"
+
+            participants.append(summoner)
+
+        for participant in participants:
+            if summoner_name == participant["summonerName"]:
+                your_team = participant["team"]
+                your_champion = champions[str(participant["championId"])]
+
+        match["participants"] = participants
+
+        response = {}
+        response["prediction"] = predict_match(match, region1)
+        response["team"] = your_team
+        response["champion"] = your_champion
+
+        return response
+
+
+def get_last_match_prediction(summonerName: str, region: str):
+    # Get last match
+    match = api_calls.get_past_matches(summonerName, region, 1)[0]
+    prediction = predict_match(match, region)
+
+    teams_result = {
         match["teams"][0]["id"]: match["teams"][0]["result"],
         match["teams"][1]["id"]: match["teams"][1]["result"],
     }
 
-    if teams["BLUE"] == "WON":
-        final_data.append(1)
+    if teams_result["BLUE"] == "WON":
+        result = 1
     else:
-        final_data.append(0)
-
-    result = final_data[44]
-    dataset = final_data[0:44]
-
-    model = joblib.load("src/finalized_model.sav")
-
-    prediction = model.predict([dataset])
+        result = 0
 
     response = {}
-
-    with open("champions_name_dictionary.json", "r") as file:
-        champions = json.load(file)
 
     your_championId = match["subject"]["championId"]
     your_team = match["subject"]["team"]
@@ -217,6 +226,3 @@ def predict_last_match(summonerName: str, region: str):
         response["correct"] = False
 
     return response
-
-
-print(predict_last_match("kokkurit", "LAN"))
