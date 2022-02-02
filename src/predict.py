@@ -34,9 +34,6 @@ def add_stats(raw_data) -> list:
     return processed_data
 
 
-""" pip install riotwatcher - https://riot-watcher.readthedocs.io/ """
-
-
 def predict_match(match, region):
     participants = match["participants"]
     print("Match found!")
@@ -98,7 +95,7 @@ def predict_match(match, region):
     return prediction
 
 
-def get_current_match_prediction(summoner_name: str, region: str) -> dict:
+def get_current_match_prediction(summonerName: str, region: str):
     print("-----Getting current match-----")
     region1 = region
     regionOf = {
@@ -116,83 +113,33 @@ def get_current_match_prediction(summoner_name: str, region: str) -> dict:
     }
     region = regionOf[region]
 
-    load_dotenv()
-    RIOT_API_KEY = os.getenv("RIOT_API_KEY")
-    lol_watcher = LolWatcher(RIOT_API_KEY)
-    """
-    4 requests to Riot API
-    If current match does not exist returns None, otherwise returns a dictionary with:
+    match = dict()
+    match = api_calls.get_live_match(summonerName, region)
 
-    gameType: str -> The game type
-    gameId: int ->  The ID of the game
-    participants: list -> The participant information
-
-    The participant information:
-
-    summonerName: str -> The summoner name of this participant
-    summonerId: str -> The encrypted summoner ID of this participant
-    championId: str -> The ID of the champion played by this participant
-    championMastery: int -> Total number of champion points for this player and champion combination
-    tier: str -> The player's tier or None if the player has not qualified yet
-    rank: str -> The player's division within a tier or None if the player has not qualified yet
-    leaguePoints: int -> The player's league points in this tier and rank
-    """
-    encrypted_summoner_id = lol_watcher.summoner.by_name(region, summoner_name)["id"]
-
-    try:
-        current_match = lol_watcher.spectator.by_summoner(region, encrypted_summoner_id)
-    except ApiError as e:
-        """
-        Possible Errors:
-            The player is not in match
-            Api Key is invalid
-        """
+    if match == None:
         return None
-    except:
-        """Unexpected Error"""
-        return None
+
+    for participant in match["participants"]:
+        if participant["summonerName"] == summonerName:
+            your_team = participant["team"]
+            your_champion = champions[str(participant["championId"])]
+            your_role = participant["currentRole"]
+
+    response = {}
+    prediction = predict_match(match, region1)
+    print(prediction)
+    if (prediction == 1 and your_team == "BLUE") or (
+        prediction == 0 and your_team == "RED"
+    ):
+        response["victory_predicted"] = True
     else:
-        match = dict()
+        response["victory_predicted"] = False
 
-        match["gameType"] = current_match["gameType"]
-        match["gameId"] = current_match["gameId"]
-        match["gameMode"] = current_match["gameMode"]
-        match["gameQueueConfigId"] = current_match["gameQueueConfigId"]
+    response["team"] = your_team
+    response["champion"] = your_champion
+    response["role"] = your_role
 
-        participants = list()
-        for participant in current_match["participants"]:
-            summoner = dict()
-
-            summoner["summonerName"] = participant["summonerName"]
-            summoner["summonerId"] = participant["summonerId"]
-            summoner["championId"] = participant["championId"]
-            if participant["teamId"] == 100:
-                summoner["team"] = "BLUE"
-            else:
-                summoner["team"] = "RED"
-
-            participants.append(summoner)
-        for participant in participants:
-            if summoner_name == participant["summonerName"]:
-                your_team = participant["team"]
-                your_champion = champions[str(participant["championId"])]
-
-        match["participants"] = participants
-
-        response = {}
-        prediction = predict_match(match, region1)
-        print(prediction)
-        if (prediction == 1 and your_team == "BLUE") or (
-            prediction == 0 and your_team == "RED"
-        ):
-            response["victory_predicted"] = True
-        else:
-            response["victory_predicted"] = False
-
-        response["team"] = your_team
-        response["champion"] = your_champion
-
-        return response
+    return response
 
 
 def get_last_match_prediction(summonerName: str, region: str):
@@ -235,3 +182,6 @@ def get_last_match_prediction(summonerName: str, region: str):
         response["correct"] = False
 
     return response
+
+
+print(get_current_match_prediction("INNOVATIONKS", "LAN"))

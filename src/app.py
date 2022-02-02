@@ -84,6 +84,9 @@ with predict_current_match:
         disp_col.subheader(f"Your team is:")
         disp_col.write(data["team"])
 
+        disp_col.subheader(f"Your role is:")
+        disp_col.write(data["role"])
+
         disp_col.subheader(f"Your champion is:")
         disp_col.write(data["champion"])
 

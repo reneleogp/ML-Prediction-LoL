@@ -41,6 +41,62 @@ def process_mongo_data():
     with open("dataset.csv", "w", encoding="UTF8", newline="") as f:
         writer = csv.writer(f)
 
+        header = []
+
+        writer.writerow(
+            [
+                # Blue Masteries Data
+                "BlueMastery1",
+                "BlueMastery2",
+                "BlueMastery3",
+                "BlueMastery4",
+                "BlueMastery5",
+                "BlueMasteryAvg",
+                "BlueMasteryMedian",
+                "BlueMasteryKurtorsis",
+                "BlueMasterySkewness",
+                "BlueMasteryStd",
+                "BlueMasteryVariance",
+                # Blue Winrates Data
+                "BlueWinrates1",
+                "BlueWinrates2",
+                "BlueWinrates3",
+                "BlueWinrates4",
+                "BlueWinrates5",
+                "BlueWinratesAvg",
+                "BlueWinratesMedian",
+                "BlueWinratesKurtorsis",
+                "BlueWinratesSkewness",
+                "BlueWinratesStd",
+                "BlueWinratesVariance",
+                # Red Masteries Data
+                "RedMastery1",
+                "RedMastery2",
+                "RedMastery3",
+                "RedMastery4",
+                "RedMastery5",
+                "RedMasteryAvg",
+                "RedMasteryMedian",
+                "RedMasteryKurtorsis",
+                "RedMasterySkewness",
+                "RedMasteryStd",
+                "RedMasteryVariance",
+                # Red Winrates Data
+                "RedWinrates1",
+                "RedWinrates2",
+                "RedWinrates3",
+                "RedWinrates4",
+                "RedWinrates5",
+                "RedWinratesAvg",
+                "RedWinratesMedian",
+                "RedWinratesKurtorsis",
+                "RedWinratesSkewness",
+                "RedWinratesStd",
+                "RedWinratesVariance",
+                # Final Result
+                "DidBlueWon",
+            ]
+        )
         batch = 0
         from_collection = db["na_matches"]
         totalBatches = from_collection.count_documents({})
@@ -128,3 +184,6 @@ def process_mongo_data():
             t2 = time.time()
             print(" {:.2f}s (total: {:.2f}s)".format(t2 - t1, t2 - t0))
         cursor.close()
+
+
+process_mongo_data()

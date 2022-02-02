@@ -361,3 +361,55 @@ def get_winrates(summonerName: str, region: str):
         return winrate_dict
     except:
         return None
+
+
+def get_live_match(summonerName: str, region: str):
+
+    url = "https://u.gg/api"
+
+    payload = json.dumps(
+        {
+            "operationName": "GetLiveGame",
+            "variables": {"summonerName": summonerName, "regionId": region},
+            "query": "query GetLiveGame($regionId: String!, $summonerName: String!) {\n  getLiveGame(regionId: $regionId, summonerName: $summonerName) {\n    gameLengthSeconds\n    gameType\n    teamA {\n      banId\n      championId\n      championLosses\n      championWins\n      championStats {\n        kills\n        deaths\n        assists\n        __typename\n      }\n      currentRole\n      onRole\n      partyNumber\n      previousSeasonRankScore {\n        lastUpdatedAt\n        losses\n        lp\n        promoProgress\n        queueType\n        rank\n        role\n        seasonId\n        tier\n        wins\n        __typename\n      }\n      currentSeasonRankScore {\n        lastUpdatedAt\n        losses\n        lp\n        promoProgress\n        queueType\n        rank\n        role\n        seasonId\n        tier\n        wins\n        __typename\n      }\n      roleDatas {\n        games\n        roleName\n        wins\n        __typename\n      }\n      summonerIconId\n      summonerName\n      summonerRuneA\n      summonerRuneB\n      summonerRuneData\n      summonerSpellA\n      summonerSpellB\n      threatLevel\n      __typename\n    }\n    teamB {\n      banId\n      championId\n      championLosses\n      championWins\n      championStats {\n        kills\n        deaths\n        assists\n        __typename\n      }\n      currentRole\n      onRole\n      partyNumber\n      previousSeasonRankScore {\n        lastUpdatedAt\n        losses\n        lp\n        promoProgress\n        queueType\n        rank\n        role\n        seasonId\n        tier\n        wins\n        __typename\n      }\n      currentSeasonRankScore {\n        lastUpdatedAt\n        losses\n        lp\n        promoProgress\n        queueType\n        rank\n        role\n        seasonId\n        tier\n        wins\n        __typename\n      }\n      roleDatas {\n        games\n        roleName\n        wins\n        __typename\n      }\n      summonerIconId\n      summonerName\n      summonerRuneA\n      summonerRuneB\n      summonerRuneData\n      summonerSpellA\n      summonerSpellB\n      threatLevel\n      __typename\n    }\n    __typename\n  }\n}\n",
+        }
+    )
+    headers = {"Content-Type": "application/json"}
+
+    response = requests.request("POST", url, headers=headers, data=payload)
+
+    if response.json()["data"]["getLiveGame"] == None:
+        return None
+
+    live_game_data = {}
+
+    live_game_data["gameType"] = response.json()["data"]["getLiveGame"]["gameType"]
+
+    live_game_data["participants"] = []
+
+    for summoner in response.json()["data"]["getLiveGame"]["teamA"]:
+        live_game_data["participants"].append(
+            {
+                "championLosses": summoner["championLosses"],
+                "championId": summoner["championId"],
+                "championWins": summoner["championWins"],
+                "currentRole": summoner["currentRole"],
+                "summonerName": summoner["summonerName"],
+                "team": "BLUE",
+            }
+        )
+    for summoner in response.json()["data"]["getLiveGame"]["teamB"]:
+        live_game_data["participants"].append(
+            {
+                "championLosses": summoner["championLosses"],
+                "championId": summoner["championId"],
+                "championWins": summoner["championWins"],
+                "currentRole": summoner["currentRole"],
+                "summonerName": summoner["summonerName"],
+                "team": "RED",
+            }
+        )
+    return live_game_data
+
+
+print(get_live_match("MAINYASUOM7E", "la1"))
