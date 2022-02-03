@@ -1,7 +1,7 @@
-from riotwatcher import LolWatcher, ApiError
+from riotwatcher import LolWatcher
 from pymongo import MongoClient
 from api_calls import get_winrates, get_past_matches, get_masteries
-from json import load, dumps
+from json import dumps
 import time
 import os
 from dotenv import load_dotenv

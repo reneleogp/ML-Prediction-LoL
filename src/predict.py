@@ -1,11 +1,9 @@
 import json
-import os
+import re
 import joblib
 from api_calls import api_calls
 import numpy as np
 import scipy.stats
-from dotenv import load_dotenv
-from riotwatcher import LolWatcher, ApiError
 
 with open("champions_name_dictionary.json", "r") as file:
     champions = json.load(file)
@@ -127,7 +125,7 @@ def get_current_match_prediction(summonerName: str, region: str):
 
     response = {}
     prediction = predict_match(match, region1)
-    print(prediction)
+    print(f"Prediction: {prediction}")
     if (prediction == 1 and your_team == "BLUE") or (
         prediction == 0 and your_team == "RED"
     ):
@@ -173,8 +171,8 @@ def get_last_match_prediction(summonerName: str, region: str):
     else:
         response["won"] = False
 
-    print(prediction)
-    print(result)
+    print(f"Prediction: {prediction}")
+    print(f"Result: {result}")
 
     if result == prediction:
         response["correct"] = True
@@ -182,6 +180,3 @@ def get_last_match_prediction(summonerName: str, region: str):
         response["correct"] = False
 
     return response
-
-
-print(get_current_match_prediction("INNOVATIONKS", "LAN"))

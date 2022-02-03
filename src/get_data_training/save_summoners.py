@@ -1,6 +1,5 @@
 import json
 from pymongo import MongoClient
-import time
 import os
 from dotenv import load_dotenv
 

@@ -377,6 +377,7 @@ def get_live_match(summonerName: str, region: str):
     headers = {"Content-Type": "application/json"}
 
     response = requests.request("POST", url, headers=headers, data=payload)
+    print(response.status_code)
 
     if response.json()["data"]["getLiveGame"] == None:
         return None
@@ -410,6 +411,3 @@ def get_live_match(summonerName: str, region: str):
             }
         )
     return live_game_data
-
-
-print(get_live_match("MAINYASUOM7E", "la1"))
