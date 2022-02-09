@@ -26,20 +26,20 @@ The most important part of your algorithm are your dataset. So I needed a good a
 **For each player in each match I got:**
    
 1. Their champion-masteries from [championmastery.gg](https://championmastery.gg/) via web scraping.
-2. Their winrates with each champion in SoloQ games of season 11 and 12 (a combination of both seasons). From [u.gg](https://u.gg/) API.
+2. Their winrates with each champion in SoloQ games of season 11 and 12 (a combination of both seasons). From [u.gg](https://u.gg/) API. (A number from 0 to 1).
 
 Finally I saved everything in my mongodb database to later process the data and train the algorithm.
 
 ## Processing the data
 
-Now I processed the data in the format I wanted to pass to the algorithm.
+Now I processed the data in the format to pass it into the algorithm.
 
 For both teams in each math I added the following features:
 
-1. Winrates of each summoner with their selected champion. (5 features per team).
-2. Average, median, coefficient of kurtosis, coefficient of skewness, standard deviation, and variance of the winrates of the team. (6 features per team).
-3. Masteries of each summoner with their selected champion. (5 features per team).
-4. Average, median, coefficient of kurtosis, coefficient of skewness, standard deviation, and variance of the masteries of the team. (6 features per team).
+1. Mastery of each summoner with their selected champion. (5 features per team).
+2. Average, median, coefficient of kurtosis, coefficient of skewness, standard deviation, and variance of the masteries of the team. (6 features per team).
+3. Winrate of each summoner with their selected champion. (5 features per team).
+4. Average, median, coefficient of kurtosis, coefficient of skewness, standard deviation, and variance of the winrates of the team. (6 features per team).
 
 Making a total of 22 features per team or, 44 features per match.
 
@@ -57,7 +57,12 @@ Here is an example of the some finished samples:
    
 ## Models
 
-I used two models a GBOOST and a Deep neural network being the Gradient boosting the best with an accuracy up to 91%.
+I used two models for training:
+
+- A Gradient Boosting using the sklearn implementation with the following parameters: `n_estimators=55` and `learning_rate=0.14`
+  
+  **NOTE: I used a Stratified K Fold to test the algorithm in order to get a more accurate result.** 
+- 
 
 
 
