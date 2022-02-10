@@ -4,7 +4,7 @@ First of all, this project is heavily inspired on this [research](https://arxiv.
 
 ## Preview
 
-I implemented a two Machine Learning algorithms to determinate the outcome of a League of Legends game based on Player-Champion Experience. I used more than 15k matches from two different servers, in order to make the training and predictions. My best result was 91% of accuracy using GBOOST.
+I implemented a two Machine Learning algorithms to determinate the outcome of a League of Legends game based on Player-Champion Experience. I used more than 16k matches from two different servers, in order to make the training and predictions. My best result was 90% of accuracy using GBOOST.
 
 ## Introduction
 
@@ -20,8 +20,14 @@ Based on these final preposition I decided to create an machine learning algorit
 
 The most important part of your algorithm are your dataset. So I needed a good amount of matches(samples) to train my algorithm. These are the steps I followed:
 
+From LAN server:
+
 1. First I got around 875 random summoners from each ranking from Iron to Diamond using Riot's API. Making a total of 5250 summoners.
 2. Using these summoners I got their last 3 Solo-Ranked matches from [Mobalytics](https://mobalytics.gg/) API. Using the match ID I disregarded repeated matches. Making a total of 14k unique matches.
+
+From NA server:
+1. Did the same thing to get the summoners
+2. Did the same thing to get the past games but in this case I only got their last SoloQ match.
    
 **For each player in each match I got:**
    
@@ -30,9 +36,11 @@ The most important part of your algorithm are your dataset. So I needed a good a
 
 Finally I saved everything in my mongodb database to later process the data and train the algorithm.
 
+**This made a total of 12458 unique SoloQ games from LAN server and 4552 SoloQ matches from NA server.**
+
 ## Processing the data
 
-Now I processed the data in the format to pass it into the algorithm.
+I processed the data in the format to pass it into the algorithm.
 
 For both teams in each math I added the following features:
 
@@ -57,14 +65,46 @@ Here is an example of the some finished samples:
    
 ## Models
 
-I used two models for training:
+### Deep Neural Network
 
-- A Gradient Boosting using the sklearn implementation with the following parameters: `n_estimators=55` and `learning_rate=0.14`
+The model architecture uses keras and following the structure as described in the research paper:
+
+• Alternating dropout, normalization, and dense layers for a total of 15 layers (5 dropout, 5 normalization, and 5 dense
+layers). Each group of alternating layers had 160, 128, 64, 32, and 16 neurons, in that order.
+
+- Each dropout layer had a dropout rate of 0.69%.
+- Each normalization layer utilized batch normalization.
+- Each dense layer used Exponential Linear Unit (ELU) activation, He initialization.
+- A 1 × 1 dense layer with Sigmoid activation
+
+Then we fit our model using the following parameters `epochs=49` and `batch_size=256`. 
+
+**Note that we use the LAN matches for training and the NA matches for testing and validation.**
+
+Finally we evauluate the model with the train samples and validation samples. In this case we use the LAN matches for training and NA matches for testing.
+
+
+### Gradient Boosting
+
+- The model is written using the sklearn implementation of GBOOST, which by default is a Decision Tree, with the following parameters: `n_estimators=55` and `learning_rate=0.14`
   
-  **NOTE: I used a Stratified K Fold to test the algorithm in order to get a more accurate result.** 
-- 
+  **NOTE: I used a Stratified K Fold to test the algorithm in order to get a more accurate result, with `k=10`.** 
 
+## Results
 
+The DNN model performed better than expected with an **accuracy of 82%** in the testing dataset (more than 4552 matches). 
+
+In the other hand the GBOOST showed an **average accuracy of 89.42%!!!**, a minimum of 88.48% and a **maximum of 90.48%**. 
+
+## Future work
+
+In future work I would like to add the role experience as a feature.
+
+# Try the finalized Algorithm!
+
+I did a simple UI using streamlit under the src/app.py you can run it by installing streamlit package and with the command `streamlit run "your_path_to_file"`
+
+![alt text](http://url/to/img.png)
 
 
 

@@ -18,9 +18,9 @@ with header:
     st.text("This project predicts a League of Legends outcome")
 
 with dataset:
-    st.header("12k Unique matches")
+    st.header("17k Unique matches")
     st.text(
-        "I trained my algorithm with 12k unique matches matches from LAN server from ranked games, all ranging from Iron to Diamond, divided evenly"
+        "I trained my algorithm with 16k unique matches matches from LAN and NA servers, from SoloQ games, all ranging from Iron to Diamond, divided evenly"
     )
 
 with features:
@@ -46,7 +46,10 @@ with features:
 
 
 with model_training:
-    st.header("I used a GBOOST and a Deep neural network")
+    st.header("Let's use the GBOOST Model to test!")
+    st.markdown(
+        "All the details can be found in the [documentation](https://github.com/PlayErphil/ML-Prediction-LoL/blob/master/readme.md)"
+    )
 
 with predict_current_match:
     st.header("Predict Current Match!")
