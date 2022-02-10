@@ -4,7 +4,7 @@ First of all, this project is heavily inspired on this [research](https://arxiv.
 
 ## Preview
 
-I implemented a two Machine Learning algorithms to determinate the outcome of a League of Legends game based on Player-Champion Experience. I used more than 16k matches from two different servers, in order to make the training and predictions. My best result was 90% of accuracy using GBOOST.
+I implemented a two Machine Learning algorithms to determinate the outcome of a League of Legends game based on Player-Champion Experience. I used more than 16k matches from two different servers, in order to make the training and predictions. My best result was 91% of accuracy using GBOOST.
 
 ## Introduction
 
@@ -38,6 +38,8 @@ Finally I saved everything in my mongodb database to later process the data and 
 
 **This made a total of 12458 unique SoloQ games from LAN server and 4552 SoloQ matches from NA server.**
 
+The functions to get the save the data can be found in the file [pull_data_scripts.py](https://github.com/PlayErphil/ML-Prediction-LoL/blob/master/src/get_data_training/pull_data_scripts.py). While the functions to call the APIs can be found in the file [api_calls.py](https://github.com/PlayErphil/ML-Prediction-LoL/blob/master/src/api_calls/api_calls.py)
+
 ## Processing the data
 
 I processed the data in the format to pass it into the algorithm.
@@ -63,6 +65,8 @@ Here is an example of the some finished samples:
 | 859153         | 8207           | 152833         | 30736          | 94462          | 229078.2           | 94462.0               | 4.494974145065102        | 2.0987197424240636      | 319077.67728589225 | 101810564142.16         | 0.594               | 0.5833333333333334 | 0.5833333333333334  | 0.5                 | 0.6111111111111112  | 0.5743555555555556  | 0.5833333333333334   | 3.8040034295105913      | -1.835360837059765     | 0.03854043251277294  | 0.0014853649382716057  | 7376          | 19807         | 249551        | 1914694       | 2021545       | 842594.6          | 249551.0             | -3.24972252904008       | 0.5761330822350282     | 923644.0250595681  | 853118285028.24        | 0.0                | 0.5                | 0.14285714285714285 | 0.5157894736842106  | 0.5236318407960199 | 0.33645569146747467 | 0.5                 | -2.252574646473776     | -0.7891605499808829   | 0.22119000317369086 | 0.048925017503977375  | 1        |
 
    
+The function for processing the data can be found in the file [process_data.py](https://github.com/PlayErphil/ML-Prediction-LoL/blob/master/src/get_data_training/process_data.py). Note that this is processing matches with the data gathered from the APIs that is stored in my Mongo database.
+
 ## Models
 
 ### Deep Neural Network
@@ -83,12 +87,16 @@ Then we fit our model using the following parameters `epochs=49` and `batch_size
 
 Finally we evauluate the model with the train samples and validation samples. In this case we use the LAN matches for training and NA matches for testing.
 
+The jupiter notebook can be found [here](https://github.com/PlayErphil/ML-Prediction-LoL/blob/master/src/neural_network.ipynb)
+
 
 ### Gradient Boosting
 
 - The model is written using the sklearn implementation of GBOOST, which by default is a Decision Tree, with the following parameters: `n_estimators=55` and `learning_rate=0.14`
   
   **NOTE: I used a Stratified K Fold to test the algorithm in order to get a more accurate result, with `k=10`.** 
+
+The jupiter notebook can be found [here](https://github.com/PlayErphil/ML-Prediction-LoL/blob/master/src/gboost.ipynb)
 
 ## Results
 
@@ -102,9 +110,9 @@ In future work I would like to add the role experience as a feature.
 
 # Try the finalized Algorithm!
 
-I did a simple UI using streamlit under the src/app.py you can run it by installing streamlit package and with the command `streamlit run "your_path_to_file"`
+I did a simple UI using streamlit under the src/app.py you can run it by installing streamlit package and with the command `streamlit run "your_path_to_app.py"`. I get the last match from [u.gg](https://u.gg/) API.
 
-![alt text](http://url/to/img.png)
+
 
 
 
