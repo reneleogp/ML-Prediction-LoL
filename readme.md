@@ -1,4 +1,4 @@
-# Predicting the outcome of a League of Legends game based on Champion-Player Experience with 90% of accuracy
+# Predicting the outcome of a League of Legends game based on Champion-Player Experience
 
 First of all, this project is heavily inspired on this [research](https://arxiv.org/abs/2108.02799#:~:text=Using%20a%20deep%20neural%20network,for%20playing%20LoL%20and%20matchmaking.). So shoutout to them.
 
