@@ -54,6 +54,9 @@ def get_past_matches(summonerName: str, region: str, top: int):
 def get_masteries(summonerName: str, region: str) -> dict:
 
     championIds = {
+        "Nilah": "895",
+        "Renata Glasc": "888",
+        "Bel'Veth": "200",
         "Aatrox": "266",
         "Ahri": "103",
         "Akali": "84",
